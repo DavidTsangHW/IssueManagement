@@ -274,6 +274,9 @@ while message:
 
         searchString = message.Subject
         searchString = searchString.replace("'","")
+        searchString = searchString.replace("[","")        
+        searchString = searchString.replace("]","")        
+        searchString = searchString.replace(" ","%")  
 
         CheckOK = True
 
@@ -284,9 +287,9 @@ while message:
             CheckOK = False
               
         if CheckOK == True:
-            sql = "select top  1 * from [issue] where title like '%" + searchString + "%' or "
-            sql = sql + "'" + searchString + "' like '%title%' order by CreateDateTime desc"
-            print(sql)
+            sql = "select top  1 * from [issue] where [title] like '%" + searchString + "%' "
+            sql = sql + " or '" + searchString + "' like '%title%'"
+            sql = sql + " order by CreateDateTime desc"
             df = pandas.read_sql(sql,cnxn)
 
             if len(df) > 0:
@@ -297,17 +300,20 @@ while message:
             event = createIssueEvent(message.EntryID, issue)
 
             if recipientsEmail == 'david.tsang@ck-lifesciences.com':
-                reply(event)
+                reply(event)   
 
-        attachments = message.attachments        
+            attachments = message.attachments
 
-        for attachment in attachments:
-            fn = attachment.FileName
-            local_path = os.getcwd()
-            local_path = local_path + '\\' + event['eventId']
-            os.mkdir(local_path)
-            local_path = os.path.join(local_path, attachment.FileName)   
-            attachment.SaveAsFile(local_path)            
+            if len(attachments) > 0:
+                local_path = os.getcwd()
+                local_path = local_path + '\\' + event['eventId']
+                os.mkdir(local_path)            
+
+            for attachment in attachments:
+                fn = attachment.FileName
+                save_path = os.path.join(local_path, attachment.FileName)
+                a = input(save_path)
+                attachment.SaveAsFile(save_path)            
 
     except Exception as error:
 
